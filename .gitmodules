@@ -1,0 +1,3 @@
+[submodule "gpmf"]
+	path = gpmf
+	url = https://github.com/delormej/gpmf.git
