@@ -12,7 +12,7 @@
     <Authors>Jason De Lorme</Authors>
     <Company>IRT, llc</Company>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    
+
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,7 +27,11 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Content Include="gpmf/build/gpmfdemo" Link="%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="Always" CopyToPublishDirectory="Always" />
+    <Content Include="gpmf/build/gpmfdemo">
+      <Pack>True</Pack>
+      <PackagePath>$(BuildOutputTargetFolder)\$(TargetFramework)</PackagePath>
+    </Content>
+ 
   </ItemGroup>
 
 </Project>
