@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Collections.Generic;
 using Microsoft.Azure.Management.Fluent;
 using Microsoft.Azure.Management.ResourceManager.Fluent;
@@ -35,6 +36,39 @@ namespace SlalomTracker.Cloud
             return containerGroup;
         }
 
+        public static int DeleteAllContainerGroups()
+        {
+            IAzure azure = Authenticate();
+            var containerGroups = azure.ContainerGroups.ListByResourceGroup(JobResourceGroup);
+            int count = containerGroups.Count();
+
+            foreach (var containerGroup in containerGroups)
+            {
+                Console.WriteLine($"{containerGroup.Name}");
+                azure.ContainerGroups.DeleteById(containerGroup.Id);
+            }
+        
+            return count;
+        }
+
+        private static IAzure Authenticate()
+        {
+            IAzure azure;
+            try
+            {
+                var msi = new MSILoginInformation(MSIResourceType.AppService); 
+                var credentials = new AzureCredentials(msi, AzureEnvironment.AzureGlobalCloud);
+                var authenticated = Azure.Authenticate(credentials);
+                string subscriptionId = GetDefaultSubscription(authenticated);
+                azure = authenticated.WithSubscription(subscriptionId);
+            }
+            catch (Exception e)
+            {
+                throw new ApplicationException("Unable to authenticate to MSI.", e);
+            }
+            return azure;
+        }
+
         private static void Create(string containerGroupName, 
             string resourceGroupName, 
             string containerImage,
@@ -42,11 +76,7 @@ namespace SlalomTracker.Cloud
             string[] commandLineArgs,
             Dictionary<string, string> environmentVariables)
         {
-            var msi = new MSILoginInformation(MSIResourceType.AppService); 
-            var credentials = new AzureCredentials(msi, AzureEnvironment.AzureGlobalCloud);
-            var authenticated = Azure.Authenticate(credentials);
-            string subscriptionId = GetDefaultSubscription(authenticated);
-            IAzure azure = authenticated.WithSubscription(subscriptionId);
+            IAzure azure = Authenticate();
 
             // Get private registry credentials.
             var acr = azure.ContainerRegistries.GetByResourceGroup(RegistryResourceGroup, RegistryName);
