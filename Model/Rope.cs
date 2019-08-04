@@ -36,6 +36,7 @@ namespace SlalomTracker
         public static List<Rope> GetStandardLengths()
         {
             List<Rope> ropes = new List<Rope>();
+            ropes.Add(Rope.Off(0));
             ropes.Add(Rope.Off(15));
             ropes.Add(Rope.Off(22));
             ropes.Add(Rope.Off(28));

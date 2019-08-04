@@ -39,6 +39,8 @@ namespace SlalomTracker.Cloud
 
         public double EntryTime { get; set; }
 
+        public string Notes { get; set; }
+
         public string SlalomTrackerVersion { 
             get { return GetVersion(); }
         }
