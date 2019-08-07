@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using FFmpeg.NET;
 using FFmpeg.NET.Events;
 using System.Threading;
@@ -48,6 +49,12 @@ namespace SlalomTracker
             return outputFile;
         }
 
+        public DateTime GetCreationTime(string inputFile)
+        {
+            string output = GetFFPmegOutput(inputFile);
+            return ParseCreationDate(output);
+        }        
+
         /// <summary>
         /// Generates a thumbnail image at the seconds specified.  Returns the path.
         /// </summary>
@@ -82,5 +89,46 @@ namespace SlalomTracker
             string outputFile = $"{inputFile.Substring(0, start)}{suffix}.MP4";
             return outputFile;
         }    
+
+        private string GetFFPmegOutput(string inputFile)
+        {
+            string parameters = $"-i {inputFile}";
+            System.Diagnostics.Process ffmpegProcess = System.Diagnostics.Process.Start("ffmpeg", parameters);
+            ffmpegProcess.WaitForExit(2000);
+            string output = ffmpegProcess.StandardOutput.ReadToEnd();
+            Console.WriteLine(output);
+            return output;            
+        }
+
+        private DateTime ParseCreationDate(string input)
+        {
+            // Read and trim start of each line until it begins with: creation_time
+            // Then parse after the ':'
+            //      creation_time   : 2019-07-11T07:13:55.000000Z
+            DateTime creationTime = DateTime.MinValue;
+            using (StringReader reader = new StringReader(input))
+            {
+                string line;
+                while ((line = reader.ReadLine()) != null)
+                {
+                    if (line.Trim().StartsWith("creation_time")) 
+                    {
+                        string[] values = line.Split(':');
+                        if (values.Length > 1) 
+                        {
+                            string rawDate = values[1].Trim();
+                            creationTime = DateTime.Parse(rawDate);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (creationTime == DateTime.MinValue)
+            {
+                throw new ApplicationException($"Unable to find creation_time in output:\n {input}");
+            }
+            return creationTime;
+        }
     }
 }
