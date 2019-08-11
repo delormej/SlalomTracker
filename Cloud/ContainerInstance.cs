@@ -21,7 +21,7 @@ namespace SlalomTracker.Cloud
         const string RegistryName = "jasondelAcr";
 
         const double CpuCoreCount = 1.0;
-        const double MemoryInGb = 1.0;
+        const double MemoryInGb = 4.0;
 
         public static string Create(string videoUrl)
         {
