@@ -64,7 +64,7 @@ namespace SlalomTracker.Cloud
             }
             catch (Exception e)
             {
-                throw new ApplicationException("Unable to authenticate to MSI.", e);
+                throw new ApplicationException($"Unable to authenticate to MSI.\n{e.Message}", e);
             }
             return azure;
         }
