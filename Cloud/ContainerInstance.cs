@@ -19,9 +19,20 @@ namespace SlalomTracker.Cloud
         const string ContainerImageEnvVar = "SKICONSOLE_IMAGE";
         const string RegistryResourceGroup = "ski";
         const string RegistryName = "jasondelAcr";
+        static readonly double CpuCoreCount = 1.0;
+        static readonly double MemoryInGb = 3.0;
+        const string MemoryInGbEnvVar = "ACI_MEMORY";
+        const string CpuCoreCountEnvVar = "ACI_CPU";
 
-        const double CpuCoreCount = 1.0;
-        const double MemoryInGb = 4.0;
+        static ContainerInstance()
+        {
+            // Read env variables, or use defaults.
+            double memory, cpu;
+            if (double.TryParse(Environment.GetEnvironmentVariable(MemoryInGbEnvVar), out memory))
+                MemoryInGb = memory;
+            if (double.TryParse(Environment.GetEnvironmentVariable(CpuCoreCountEnvVar), out cpu))
+                CpuCoreCount = cpu;
+        }
 
         public static string Create(string videoUrl)
         {

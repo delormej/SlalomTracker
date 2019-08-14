@@ -65,8 +65,10 @@ namespace SlalomTracker.Video
                 var trimTask = _videoTasks.TrimAsync(localPath, start, duration);
                 trimTask.Wait();
                 string trimmedPath = trimTask.Result;
-
+                
+                Console.WriteLine($"Trimmed: {trimmedPath}");
                 Console.WriteLine($"Removing audio from {localPath}.");
+                
                 var silenceTask = _videoTasks.RemoveAudioAsync(trimmedPath);
                 silenceTask.Wait();
                 string silencedPath = silenceTask.Result;
