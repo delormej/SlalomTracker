@@ -18,15 +18,14 @@ namespace SlalomTracker
 
         public async Task<string> TrimAsync(string localVideoPath, double start, double length)
         {
-            var inputFile = new MediaFile (localVideoPath);
-            var outputFile = new MediaFile (AppendToFileName(localVideoPath, "_t"));
+            var inputFile = new MediaFile(localVideoPath);
+            var outputFile = new MediaFile(AppendToFileName(localVideoPath, "_t"));
             var options = new ConversionOptions();            
             options.CutMedia(TimeSpan.FromSeconds(start), TimeSpan.FromSeconds(length));   
             
             try 
             {
                 await _ffmpeg.ConvertAsync(inputFile, outputFile, options); 
-                Console.WriteLine($"Converted: {outputFile.FileInfo.FullName}");
             }
             catch (Exception e)
             {
