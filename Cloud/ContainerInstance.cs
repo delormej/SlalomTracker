@@ -36,7 +36,7 @@ namespace SlalomTracker.Cloud
 
         public static string Create(string videoUrl)
         {
-            Console.WriteLine($"Creating container instance for video: {videoUrl}");
+            Console.WriteLine($"Creating container instance for video: {videoUrl} with {CpuCoreCount} cpu(s) and {MemoryInGb} gb memory.");
             string image = GetContainerImage();
             string[] args = GetCommandLineArgs(videoUrl);
             string containerGroup = GetContainerGroupName(videoUrl);
