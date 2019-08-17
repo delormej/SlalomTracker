@@ -4,6 +4,7 @@ using FFmpeg.NET;
 using FFmpeg.NET.Events;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Diagnostics;
 
 namespace SlalomTracker
 {
@@ -91,12 +92,27 @@ namespace SlalomTracker
 
         private string GetFFPmegOutput(string inputFile)
         {
-            string parameters = $"-i {inputFile}";
-            System.Diagnostics.Process ffmpegProcess = System.Diagnostics.Process.Start("ffmpeg", parameters);
-            ffmpegProcess.WaitForExit(2000);
-            string output = ffmpegProcess.StandardOutput.ReadToEnd();
-            Console.WriteLine(output);
-            return output;            
+            string output;
+            try
+            {
+                string parameters = $"-i {inputFile}";
+                using (Process ffmpeg = new Process())
+                {
+                    ffmpeg.StartInfo.FileName = "ffmpeg";
+                    ffmpeg.StartInfo.Arguments = parameters;
+                    ffmpeg.StartInfo.UseShellExecute = false;
+                    ffmpeg.StartInfo.RedirectStandardOutput = true;
+                    ffmpeg.StartInfo.RedirectStandardError = true;
+                    ffmpeg.Start();
+                    output = ffmpeg.StandardError.ReadToEnd();
+                    ffmpeg.WaitForExit();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new ApplicationException("Unable to execute ffmpeg:  " + e.Message);
+            }        
+            return output;    
         }
 
         private DateTime ParseCreationDate(string input)
@@ -104,7 +120,7 @@ namespace SlalomTracker
             // Read and trim start of each line until it begins with: creation_time
             // Then parse after the ':'
             //      creation_time   : 2019-07-11T07:13:55.000000Z
-            DateTime creationTime = DateTime.MinValue;
+            DateTime creationTime = default; // DateTime.MinValue;
             using (StringReader reader = new StringReader(input))
             {
                 string line;
@@ -112,21 +128,27 @@ namespace SlalomTracker
                 {
                     if (line.Trim().StartsWith("creation_time")) 
                     {
-                        string[] values = line.Split(':');
-                        if (values.Length > 1) 
-                        {
-                            string rawDate = values[1].Trim();
-                            creationTime = DateTime.Parse(rawDate);
-                            break;
-                        }
+                        creationTime = ParseCreationTimeLine(line);
+                        break;
                     }
                 }
             }
 
-            if (creationTime == DateTime.MinValue)
+            if (creationTime == default)
             {
                 throw new ApplicationException($"Unable to find creation_time in output:\n {input}");
             }
+            return creationTime;
+        }
+
+        private DateTime ParseCreationTimeLine(string line)
+        {
+            int start = line.IndexOf(':');
+            if (start <= 0 || line.Length < start + 1)
+                throw new ApplicationException("Improperly formed creation_time.");
+
+            string rawDate = line.Substring(start+1).Trim();
+            DateTime creationTime = DateTime.Parse(rawDate);
             return creationTime;
         }
     }
