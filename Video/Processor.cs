@@ -27,15 +27,19 @@ namespace SlalomTracker.Video
             string json = MetadataExtractor.Extract.ExtractMetadata(localPath);
             CoursePass pass = CoursePassFactory.FromJson(json);
             var thumbnailTask = CreateThumbnailAsync(localPath, pass.GetSecondsAtEntry());
+            var creationTimeTask = _videoTasks.GetCreationTimeAsync(localPath);
+
             string processedLocalPath = TrimAndSilenceVideo(localPath, pass);
             string finalVideoUrl = _storage.UploadVideo(processedLocalPath);
             
-            // Wait to get the thumbnail path.
-            thumbnailTask.Wait();
+            Task.WaitAll(thumbnailTask, creationTimeTask);
             string thumbnailUrl = thumbnailTask.Result;
+            DateTime creationTime = creationTimeTask.Result;
 
-            _storage.AddMetadata(finalVideoUrl, thumbnailUrl, json, pass);
-
+            SkiVideoEntity entity = new SkiVideoEntity(finalVideoUrl, creationTime);
+            entity.SetFromCoursePass(pass);
+            entity.ThumbnailUrl = thumbnailUrl;
+            _storage.AddMetadata(entity, json);
             _storage.DeleteIngestedBlob(videoUrl);
 
             return finalVideoUrl;

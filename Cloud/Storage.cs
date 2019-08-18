@@ -39,22 +39,13 @@ namespace SlalomTracker.Cloud
         public CloudStorageAccount Account { get { return _account; } }
         public Queue Queue { get { return _queue; } }
 
-        public SkiVideoEntity AddMetadata(string videoUrl, string json)
+        public void AddMetadata(SkiVideoEntity entity, string json)
         {
-            CoursePass pass = CoursePassFactory.FromJson(json);
-            return AddMetadata(videoUrl, "", json, pass);
-        }
-
-        public SkiVideoEntity AddMetadata(string videoUrl, string thumbnailUrl, string json, CoursePass pass)
-        {
-            string blobName = GetBlobName(videoUrl);
+            string blobName = GetBlobName(entity.Url);
             string jsonUrl = UploadMeasurements(blobName, json);
-            SkiVideoEntity entity = new SkiVideoEntity(videoUrl, pass);
-            entity.ThumbnailUrl = thumbnailUrl;
-            entity.JsonUrl = jsonUrl;
+            entity.JsonUrl = jsonUrl; 
             AddTableEntity(entity);
-            Console.WriteLine("Uploaded metadata for video:" + videoUrl);
-            return entity;
+            Console.WriteLine("Uploaded metadata for video:" + entity.Url);            
         }
 
         public void UpdateMetadata(SkiVideoEntity entity)

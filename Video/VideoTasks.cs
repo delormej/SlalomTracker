@@ -53,6 +53,14 @@ namespace SlalomTracker
         {
             string output = GetFFPmegOutput(inputFile);
             return ParseCreationDate(output);
+        }
+
+        public async Task<DateTime> GetCreationTimeAsync(string inputFile)
+        {
+            DateTime creationTime = await Task.Run( () => {
+                return GetCreationTime(inputFile);
+            } );
+            return creationTime;
         }        
 
         /// <summary>

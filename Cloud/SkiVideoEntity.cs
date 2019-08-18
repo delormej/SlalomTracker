@@ -10,13 +10,25 @@ namespace SlalomTracker.Cloud
         {
             
         }
+
+        public SkiVideoEntity(string videoUrl, DateTime creationTime)
+        {
+            this.PartitionKey = GetFilenameFromUrl(videoUrl);
+            this.RowKey = creationTime.ToString("yyyy-MM-dd");
+        }
+
         public SkiVideoEntity(string videoUrl, CoursePass pass)
         {
             this.Url = videoUrl;
-            SetKeys(videoUrl);
+            SetKeys(videoUrl);            
+            SetFromCoursePass(pass);
+        }
+
+        public void SetFromCoursePass(CoursePass pass)
+        {
             BoatSpeedMph = pass.AverageBoatSpeed;
             CourseName = pass.Course.Name;
-            EntryTime = pass.GetSecondsAtEntry();
+            EntryTime = pass.GetSecondsAtEntry();            
         }
 
         public string Url { get; set; }
@@ -45,6 +57,8 @@ namespace SlalomTracker.Cloud
             get { return GetVersion(); }
         }
 
+        public DateTime CreationTime { get; set; }
+
         private void SetKeys(string videoUrl)
         {
             string path = Storage.GetBlobName(videoUrl);
@@ -58,6 +72,17 @@ namespace SlalomTracker.Cloud
             int index = path.LastIndexOf(Path.AltDirectorySeparatorChar);
             this.PartitionKey = path.Substring(0, index);
             this.RowKey = path.Substring(index + 1, path.Length - index - 1);
+        }
+
+        private string GetFilenameFromUrl(string videoUrl)
+        {
+            string filename;
+            Uri uri = new Uri(videoUrl);
+            if (uri.IsFile)
+                filename = System.IO.Path.GetFileName(uri.LocalPath);
+            else 
+                throw new ApplicationException("Can't find filename in url: " + videoUrl);
+            return filename;
         }
 
         private string GetVersion()
