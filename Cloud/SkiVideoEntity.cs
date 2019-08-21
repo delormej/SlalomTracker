@@ -76,12 +76,8 @@ namespace SlalomTracker.Cloud
 
         private string GetFilenameFromUrl(string videoUrl)
         {
-            string filename;
             Uri uri = new Uri(videoUrl);
-            if (uri.IsFile)
-                filename = System.IO.Path.GetFileName(uri.LocalPath);
-            else 
-                throw new ApplicationException("Can't find filename in url: " + videoUrl);
+            string filename = System.IO.Path.GetFileName(uri.LocalPath);
             return filename;
         }
 

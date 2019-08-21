@@ -85,7 +85,7 @@ namespace SlalomTracker
 
         private void OnError(object sender, ConversionErrorEventArgs e)
         {
-            Console.WriteLine("Trim video error: [{0} => {1}]: Error: {2}\n{3}", e.Input.FileInfo.Name, e.Output.FileInfo.Name, e.Exception.ExitCode, e.Exception.InnerException);
+            Console.WriteLine("FFMPEG error: [{0} => {1}]: Error: {2}\n{3}", e.Input.FileInfo.Name, e.Output.FileInfo.Name, e.Exception.ExitCode, e.Exception.Message);
         }    
 
         private string AppendToFileName(string inputFile, string suffix)
