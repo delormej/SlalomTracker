@@ -27,21 +27,23 @@ namespace SlalomTracker.Video
             try
             {
                 string localPath = Cloud.Storage.DownloadVideo(videoUrl);
+                var creationTimeTask = _videoTasks.GetCreationTimeAsync(localPath);
                 string json = MetadataExtractor.Extract.ExtractMetadata(localPath);
                 CoursePass pass = CoursePassFactory.FromJson(json);
-                var thumbnailTask = CreateThumbnailAsync(localPath, pass.GetSecondsAtEntry());
-                var creationTimeTask = _videoTasks.GetCreationTimeAsync(localPath);
 
-                string processedLocalPath = TrimAndSilenceVideo(localPath, pass);
-                finalVideoUrl = _storage.UploadVideo(processedLocalPath);
-                
-                Task.WaitAll(thumbnailTask, creationTimeTask);
-                string thumbnailUrl = thumbnailTask.Result;
+                creationTimeTask.Wait();
                 DateTime creationTime = creationTimeTask.Result;
 
+                var thumbnailTask = CreateThumbnailAsync(localPath, creationTime, 
+                    pass.GetSecondsAtEntry());               
+                string processedLocalPath = TrimAndSilenceVideo(localPath, pass);
+                finalVideoUrl = _storage.UploadVideo(processedLocalPath, creationTime);
+                
                 SkiVideoEntity entity = new SkiVideoEntity(finalVideoUrl, creationTime);
                 entity.SetFromCoursePass(pass);
-                entity.ThumbnailUrl = thumbnailUrl;
+                thumbnailTask.Wait();
+                entity.ThumbnailUrl = thumbnailTask.Result;               
+
                 _storage.AddMetadata(entity, json);
                 _storage.DeleteIngestedBlob(videoUrl);
             }
@@ -99,7 +101,7 @@ namespace SlalomTracker.Video
         /// Creates and uploads a thumbnail async, when complete returns the full uri of 
         /// the uploaded thumbnail.
         /// </summary>
-        private Task<string> CreateThumbnailAsync(string localVideoPath, double atSeconds = 0.5)
+        private Task<string> CreateThumbnailAsync(string localVideoPath, DateTime creationTime, double atSeconds = 0.5)
         {
             // Kick thumbnail generation off async.
             var thumbnailTask = _videoTasks.GetThumbnailAsync(localVideoPath, atSeconds)
@@ -107,7 +109,7 @@ namespace SlalomTracker.Video
                 {
                     string thumbnailPath = t.Result;
                     Console.WriteLine($"Generated thumbnail: {thumbnailPath}");
-                    string thumbnailUrl = _storage.UploadThumbnail(thumbnailPath);
+                    string thumbnailUrl = _storage.UploadThumbnail(thumbnailPath, creationTime);
                     return thumbnailUrl;
                 });
             return thumbnailTask;

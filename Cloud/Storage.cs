@@ -41,7 +41,7 @@ namespace SlalomTracker.Cloud
 
         public void AddMetadata(SkiVideoEntity entity, string json)
         {
-            string blobName = GetBlobName(entity.Url);
+            string blobName = GetBlobName(entity.Url, entity.RecordedTime);
             string jsonUrl = UploadMeasurements(blobName, json);
             entity.JsonUrl = jsonUrl; 
             AddTableEntity(entity);
@@ -67,22 +67,9 @@ namespace SlalomTracker.Cloud
             return result.Results;
         }
 
-        public void UploadVideos(string path)
+        public string UploadVideo(string localFile, DateTime creationTime)
         {
-            if (IsFilePath(path))
-            {
-                string outputUrl = UploadVideo(path);
-                Console.WriteLine("Wrote " + path + " to " + outputUrl);
-            }
-            else
-            {
-                WalkDirectories(path);
-            }            
-        }
-
-        public string UploadVideo(string localFile)
-        {
-            string blobName = GetBlobName(localFile);
+            string blobName = GetBlobName(localFile, creationTime);
             CloudBlockBlob blob = GetBlobReference(blobName);
             Task<bool> existsTask = blob.ExistsAsync();
             existsTask.Wait();
@@ -100,10 +87,10 @@ namespace SlalomTracker.Cloud
             return uri; // URL to the uploaded file.
         }
 
-        public string UploadThumbnail(string localFile)
+        public string UploadThumbnail(string localFile, DateTime creationTime)
         {
             // For now there is no difference between a video and any other file upload.
-            return UploadVideo(localFile);
+            return UploadVideo(localFile, creationTime);
         }
 
         public bool BlobNameExists(string blobName)
@@ -175,26 +162,6 @@ namespace SlalomTracker.Cloud
             return path;
         }
 
-        private void WalkDirectories(string path) 
-        {
-            WalkFiles(path);
-            string[] dirs = Directory.GetDirectories(path);
-            for (int i = 0; i < dirs.Length; i++) 
-            {
-                WalkDirectories(dirs[i]);
-            }         
-        }
-
-        private void WalkFiles(string path)
-        {
-            string[] files = Directory.GetFiles(path);
-            for (int i = 0; i < files.Length; i++)
-            {
-                string outputUrl = UploadVideo(files[i]);
-                Console.WriteLine("Wrote " + path + " to " + outputUrl);
-            }
-        }
-
         /* Checks to see if it's a valid File or Directory.  
             returns True if File, False if Directory, exception if neither.
         */
@@ -211,9 +178,9 @@ namespace SlalomTracker.Cloud
                 return true;
         }
 
-        public static string GetBlobName(string localFile)
+        public static string GetBlobName(string localFile, DateTime creationTime)
         {
-            string dir = GetBlobDirectory(localFile);
+            string dir = GetBlobDirectory(creationTime);
             string blob = dir + Path.GetFileName(localFile);
             return blob;
         }
@@ -223,24 +190,9 @@ namespace SlalomTracker.Cloud
         /// </summary>
         /// <param name="localFile"></param>
         /// <returns></returns>
-        public static string GetBlobDirectory(string localFile)
+        public static string GetBlobDirectory(DateTime creationTime)
         {
-            // Remove HERO5 Black x directory.
-            int heroMonikerStart = localFile.IndexOf("HERO");
-            if (heroMonikerStart > 0)
-            {
-                localFile = localFile.Substring(0, heroMonikerStart);
-            }
-
-            string dir = "";
-            int start = 0, end = localFile.LastIndexOf(Path.DirectorySeparatorChar);
-            if (end >= 0)
-            {
-                start = localFile.LastIndexOf(Path.DirectorySeparatorChar, end - 1);
-                dir = localFile.Substring(start + 1, (end - start) - 1);
-            }
-            dir += "/";
-            return dir;
+            return creationTime.ToString("yyyy-MM-dd") + "/";
         }
 
         public void DeleteIngestedBlob(string url)
@@ -248,7 +200,8 @@ namespace SlalomTracker.Cloud
             string blobName = "";
             try
             {
-                blobName = GetBlobName(url);
+                Uri uri = new Uri(url);
+                blobName = uri.LocalPath;
                 CloudBlockBlob blob = GetBlobReference(blobName, INGEST_SKICONTAINER);
                 if (blob == null)
                     throw new ApplicationException($"Error deleting. {blobName} did not exist.");
@@ -258,7 +211,7 @@ namespace SlalomTracker.Cloud
             catch (Exception e)
             {
                 // Warning, not an error.
-                Console.WriteLine($"Unable to delete blob {blobName} from ingest container {INGEST_CONTAINER}.", e);
+                Console.WriteLine($"Unable to delete blob {blobName} from ingest container {INGEST_SKICONTAINER}.", e);
             }
         }
 
