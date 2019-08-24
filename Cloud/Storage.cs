@@ -257,8 +257,8 @@ namespace SlalomTracker.Cloud
             }
             catch (Exception e)
             {
-                throw new ApplicationException(
-                    $"Unable to delete blob {blobName} at {url}", e);
+                // Warning, not an error.
+                Console.WriteLine($"Unable to delete blob {blobName} from ingest container {INGEST_CONTAINER}.", e);
             }
         }
 
