@@ -70,22 +70,21 @@ namespace SlalomTracker
         {
             if (!videoLocalPath.ToUpper().EndsWith(".MP4"))
                 throw new ApplicationException($"Cannot generate thumbnail, invalid video path: {videoLocalPath}");
-            string thumbnailPath = videoLocalPath.ToUpper().Replace(".MP4", ".PNG");
+            string thumbnailPath = Path.ChangeExtension(videoLocalPath, ".PNG");
 
-            var inputFile = new MediaFile (videoLocalPath);
+            var inputFile = new MediaFile(videoLocalPath);
             var outputFile = new MediaFile(thumbnailPath);
             var options = new ConversionOptions { Seek = TimeSpan.FromSeconds(atSeconds) };
 
             Console.WriteLine($"Generating thumbnail: {thumbnailPath} for video: {videoLocalPath} at {atSeconds} seconds.");
             await _ffmpeg.GetThumbnailAsync(inputFile, outputFile, options);
-            Console.WriteLine($"Generated thumbnail: {thumbnailPath}");
 
             return thumbnailPath;
         }
 
         private void OnError(object sender, ConversionErrorEventArgs e)
         {
-            Console.WriteLine("FFMPEG error: [{0} => {1}]: Error: {2}\n{3}", e.Input.FileInfo.Name, e.Output.FileInfo.Name, e.Exception.ExitCode, e.Exception.Message);
+            Console.WriteLine("FFMPEG error: [{0} => {1}]: Error: {2}\n\t{3}", e.Input.FileInfo.Name, e.Output.FileInfo.Name, e.Exception.ExitCode, e.Exception.Message);
         }    
 
         private string AppendToFileName(string inputFile, string suffix)
