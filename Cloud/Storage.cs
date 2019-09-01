@@ -201,7 +201,8 @@ namespace SlalomTracker.Cloud
             try
             {
                 Uri uri = new Uri(url);
-                blobName = uri.LocalPath;
+                // Remove container name from path.
+                blobName = uri.LocalPath.Replace(Path.DirectorySeparatorChar + INGEST_SKICONTAINER, "");
                 CloudBlockBlob blob = GetBlobReference(blobName, INGEST_SKICONTAINER);
                 if (blob == null)
                     throw new ApplicationException($"Error deleting. {blobName} did not exist.");
