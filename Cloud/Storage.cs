@@ -211,7 +211,7 @@ namespace SlalomTracker.Cloud
             catch (Exception e)
             {
                 // Warning, not an error.
-                Console.WriteLine($"Unable to delete blob {blobName} from ingest container {INGEST_SKICONTAINER}.", e);
+                Console.WriteLine($"Unable to delete blob {blobName} from ingest container {INGEST_SKICONTAINER}.\nError: {e.Message}");
             }
         }
 
