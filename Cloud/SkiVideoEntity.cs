@@ -15,8 +15,8 @@ namespace SlalomTracker.Cloud
         {
             this.Url = videoUrl;
             this.RecordedTime = creationTime;
-            this.PartitionKey = GetFilenameFromUrl(videoUrl);
-            this.RowKey = creationTime.ToString("yyyy-MM-dd");
+            this.PartitionKey = creationTime.ToString("yyyy-MM-dd");
+            this.RowKey = GetFilenameFromUrl(videoUrl); 
         }
 
         public void SetFromCoursePass(CoursePass pass)
