@@ -17,6 +17,7 @@ namespace SlalomTracker.Cloud
             this.RecordedTime = creationTime;
             this.PartitionKey = creationTime.ToString("yyyy-MM-dd");
             this.RowKey = GetFilenameFromUrl(videoUrl); 
+            this.SlalomTrackerVersion = GetVersion();
         }
 
         public void SetFromCoursePass(CoursePass pass)
@@ -48,9 +49,7 @@ namespace SlalomTracker.Cloud
 
         public string Notes { get; set; }
 
-        public string SlalomTrackerVersion { 
-            get { return GetVersion(); }
-        }
+        public string SlalomTrackerVersion { get; set; }
 
         public DateTime RecordedTime { get; set; }
 
