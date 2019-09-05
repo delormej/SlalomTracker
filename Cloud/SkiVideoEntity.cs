@@ -54,6 +54,8 @@ namespace SlalomTracker.Cloud
 
         public DateTime RecordedTime { get; set; }
 
+        public bool MarkedForDelete { get; set; } = false;
+
         private string GetFilenameFromUrl(string videoUrl)
         {
             Uri uri = new Uri(videoUrl);
@@ -65,7 +67,7 @@ namespace SlalomTracker.Cloud
         {
             var extractor = typeof(MetadataExtractor.Extract).Assembly.GetName();
             var assembly = System.Reflection.Assembly.GetEntryAssembly().GetName();
-            string version = $"{extractor.Name}:v{extractor.Version.ToString()}\n" +
+            string version = $"{extractor.Name}:v{extractor.Version.ToString()}," +
                 $"{assembly.Name}:v{assembly.Version.ToString()}";
 
             return version;
